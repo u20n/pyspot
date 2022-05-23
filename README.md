@@ -12,6 +12,7 @@
 [ ] pull current track (Current) [API](https://developer.spotify.com/documentation/web-api/)
 
 [ ] [XML](https://docs.python.org/3/library/xml.etree.elementtree.html) or [JSON](https://docs.python.org/3/library/json.html?highlight=json#module-json) formatting for track information
-[ ] Optional cross-session rentention (e.g. `/var/tmp` instead of `/tmp`) 
-[ ] Default 'icon' provided for example, but as hands off as possible
 
+[ ] Optional cross-session rentention (e.g. `/var/tmp` instead of `/tmp`) 
+
+[ ] Default 'icon' provided for example, but as hands off as possible
