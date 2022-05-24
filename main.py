@@ -26,9 +26,7 @@ def doAuthFlow(port: int, url: str):
     webbrowser.open_new_tab(url)
     ws.handle_request()
     
-import socket
-import json
-#import xml TODO
+import socket, json#,xml TODO
 class Config:
     def __init__(self, path: str):
         self.path = path
@@ -53,11 +51,7 @@ class Config:
         self.id = j["c"]["id"]
         self.secret = j["c"]["secret"]
 
-import hashlib
-import requests
-import random
-import base64
-import string
+import hashlib, requests, random, base64, string
 
 class Spotify:
     def __init__(self, config: Config, token: str = ""):
