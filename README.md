@@ -17,7 +17,8 @@ Create either a JSON or XML file following the name standard of `*.cfg.<json/xml
   }
 ```
 
-** Developer Console **
+**Developer Console**
+
 Register an application according to the [documentation](https://developer.spotify.com/documentation/general/guides/authorization/app-settings/) **with exactly the same redirect as `http://localhost:1337/redirect`**
 
 ### TODO:
