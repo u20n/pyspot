@@ -16,9 +16,13 @@ Create either a JSON or XML file following the name standard of `*.cfg.<json/xml
     }
   }
 ```
+
+** Developer Console **
+Register an application according to the [documentation](https://developer.spotify.com/documentation/general/guides/authorization/app-settings/) **with exactly the same redirect as `http://localhost:1337/redirect`**
+
 ### TODO:
 
-[ ] `/tmp` as dump from the [linux standard]( https://refspecs.linuxfoundation.org/FHS_2.3/fhs-2.3.html) - While not strictly nessecary, garbage collection in `/tmp` would be nice
+[/] `/tmp` as dump from the [linux standard]( https://refspecs.linuxfoundation.org/FHS_2.3/fhs-2.3.html) - While not strictly nessecary, garbage collection in `/tmp` would be nice
 
 [ ] pull current track; [API](https://developer.spotify.com/documentation/web-api/)
 
