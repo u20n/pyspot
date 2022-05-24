@@ -1,23 +1,24 @@
-import typing
-import io
-import webbrowser
+import typing, webbrowser, io, os
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 class AuthServer(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path).query
         pairs = parsed.split('&')
-        final = {}
-        for i in pairs:
-            x = i.split('=')
-            final[x[0]] = x[1]
-        # code is here, if you want it (for confirm page)
+       
+        code = pairs[0].split('=')[1]
         with open("/tmp/pyspot/code.txt", 'w') as f:
-            f.write(final["code"])
+            f.write(code)
 
         self.send_response(200)
         self.send_header("Content-Type", "text/html");
-        self.end_headers() 
+        self.end_headers()
+        
+        fp = str(os.path.realpath(__file__)).split('/')
+        fp.pop()
+        okF = '/'.join(fp)
+        with open(okF+"/assets/ok.html", 'r') as f:
+            self.wfile.write(bytes(f.read(), 'utf-8'))
   
 def doAuthFlow(port: int, url: str):
     ws = HTTPServer(("localhost", port), AuthServer)
@@ -67,13 +68,8 @@ class Spotify:
         if not token:
             # returns state bool
             self.authed = self.auth()
-    
-    def gencookie(self, c: str):
-        h = hashlib.sha256()
-        h.update(bytes(c, 'ascii'))
-        return base64.urlsafe_b64encode(h.digest()).decode('ascii')
-    
-    def genverifier(self, c: str):
+
+    def safehash(self, c: str):
         h = hashlib.sha256()
         h.update(bytes(c, 'ascii'))
         psuedosafe = base64.urlsafe_b64encode(h.digest()).decode('ascii')
@@ -85,44 +81,39 @@ class Spotify:
             return
 
         seed = str(random.random())
-        cookie = self.gencookie(seed)
-        self.cookie = cookie
-
-        l = string.ascii_letters
-        self.verifier = (''.join(random.choice(l) for x in range(43))) 
-        a = {
+        self.cookie = self.safehash(seed)
+        
+        self.verifier = (''.join(random.choice(string.ascii_letters) for x in range(43))) 
+        getA = {
             "client_id": self.c.id,
             "response_type": "code",
             "redirect_uri": "http://localhost:1337/redirect",
-            "state": cookie,
+            "state": self.cookie, # not nessecarily required, given that pyspot is 1:1
             "scope": "user-read-currently-playing",
             "code_challenge_method": "S256",
-            "code_challenge": self.genverifier(self.verifier) 
+            "code_challenge": self.safehash(self.verifier) 
         }
-        r = requests.get(
+        getR = requests.get(
                 "https://accounts.spotify.com/authorize",
-                params = a
+                params = getA
         ) 
-        if r.status_code != 200:
-            print("err | auth() response code: ", str(r.status_code)) # ERROR
+        if getR.status_code != 200:
+            print("err | auth() response code: ", str(getR.status_code)) # ERROR
             return False
 
-        doAuthFlow(1337, r.url)
+        doAuthFlow(1337, getR.url)
         
         code = ""
         with open("/tmp/pyspot/code.txt", 'r') as f:
             code = f.read()
         
-        m = f"{self.c.id}:{self.c.secret}"
-        b = m.encode('ascii')
-        b64b = base64.b64encode(b)
-        b64m = b64b.decode('ascii')
+        m = f"{self.c.id}:{self.c.secret}".encode('ascii')
+        b64m = base64.b64encode(m).decode('ascii')
 
         postHdrs = {
                 "Authorization": "Basic "+b64m,
                 "Content-Type": "application/x-www-form-urlencoded"
-        }
-        
+        } 
         postParams = {
                 "grant_type": "authorization_code",
                 "code": code,
@@ -130,19 +121,27 @@ class Spotify:
                 "client_id": self.c.id,
                 "code_verifier": self.verifier
         }
-        p = requests.post(
+        postR = requests.post(
                 "https://accounts.spotify.com/api/token",
                 params = postParams,
                 headers = postHdrs
         )
 
-        if p.status_code != 200:
-            print("err | auth() response code: ", str(p.status_code), p.text) # ERROR
+        if postR.status_code != 200:
+            print("err | auth() response code: ", str(postR.status_code), postR.text) # ERROR
             return False
-        print(p.text)
+        
+        pj = json.loads(postR.text)
+        self.token = pj["access_token"]
+        self.rtoken = pj["refresh_token"]
+        self.expire = pj["expires_in"]
+        return True
+
     def pull_track(self):
         if not authed:
-            self.auth() 
+            self.auth()
+
+
         return
 
 def main():
